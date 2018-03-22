@@ -10,8 +10,14 @@ import java.text.SimpleDateFormat;
 import java.text.StringCharacterIterator;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class CreditCardNumber {
+
+    public static final String HIPER_REGEX = "^(3841|606282)[0-9]*";
+    public static final String ELO_REGEX = "^(40117(8|9)|431274|438935|636297|451416|45763(1|2)|504175|627780|636297|"
+            + "636368|506699|457393|5067([0-6])|50677([0-8])|509[0-9])[0-9]*";
 
     /**
      * Checks if the given string represents a number that passes the Luhn Checksum which all valid
@@ -24,7 +30,7 @@ class CreditCardNumber {
         int even = 0;
         int sum = 0;
 
-        final int[][] sums = { { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, { 0, 2, 4, 6, 8, 1, 3, 5, 7, 9 } };
+        final int[][] sums = {{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, {0, 2, 4, 6, 8, 1, 3, 5, 7, 9}};
 
         CharacterIterator iter = new StringCharacterIterator(number);
         for (char c = iter.last(); c != CharacterIterator.DONE; c = iter.previous()) {
@@ -152,4 +158,28 @@ class CreditCardNumber {
         }
         return null;
     }
+
+
+    public static boolean isValidEloCard(String numberString) {
+        return checkNumberPatternValid(numberString, ELO_REGEX);
+    }
+
+    public static boolean isValidHiperCard(String numberString) {
+        return checkNumberPatternValid(numberString, HIPER_REGEX);
+    }
+
+    public static boolean isValidEloLength(int length) {
+        return length == 16;
+    }
+
+    public static boolean isValidHiperLength(int length) {
+        return length == 16 || length == 19;
+    }
+
+    private static boolean checkNumberPatternValid(String number, String regex) {
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(number);
+        return matcher.find();
+    }
+
 }

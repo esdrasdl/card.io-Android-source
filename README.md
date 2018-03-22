@@ -5,6 +5,9 @@
 Credit card scanning for Android apps
 =====================================
 
+This repository is a merge between the current card.io and Carlos Pontual fork (https://github.com/carlospontual/card.io-Android-source).
+The main change on Carlos Pontual fork is parse Elo and HiperCard credit cards.
+
 This repository contains everything needed to build the [**card.io**](https://card.io) library for Android.
 
 What it does not yet contain is much in the way of documentation. :crying_cat_face: So please feel free to ask any questions by creating github issues -- we'll gradually build our documentation based on the discussions there.

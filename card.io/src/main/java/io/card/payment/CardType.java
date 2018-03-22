@@ -37,25 +37,39 @@ public enum CardType {
      */
     DISCOVER("Discover"),
     /**
+     * Elo
+     */
+    ELO("Elo"),
+    /**
+     * HiperCard
+     */
+    HIPERCARD("Hiper"),
+    /**
+     * /**
      * JCB (see http://www.jcbusa.com/) cards start with 35
      */
     JCB("JCB"),
+
     /**
      * Mastercard starts with 51-55
      */
     MASTERCARD("MasterCard"),
+
     /**
      * Visa starts with 4
      */
     VISA("Visa"),
+
     /**
      * Maestro
      */
     MAESTRO("Maestro"),
+
     /**
      * Unknown card type.
      */
     UNKNOWN("Unknown"),
+
     /**
      * Not enough information given.
      * <br><br>
@@ -122,6 +136,8 @@ public enum CardType {
             case MAESTRO:
             case VISA:
             case DISCOVER:
+            case ELO:
+            case HIPERCARD:
                 result = 16;
                 break;
             case DINERSCLUB:
@@ -154,6 +170,8 @@ public enum CardType {
             case VISA:
             case DISCOVER:
             case DINERSCLUB:
+            case ELO:
+            case HIPERCARD:
                 result = 3;
                 break;
             case UNKNOWN:
@@ -215,9 +233,9 @@ public enum CardType {
     /**
      * Determine if a number matches a prefix interval
      *
-     * @param number credit card number
+     * @param number        credit card number
      * @param intervalStart prefix (e.g. "4") or prefix interval start (e.g. "51")
-     * @param intervalEnd prefix interval end (e.g. "55") or null for non-intervals
+     * @param intervalEnd   prefix interval end (e.g. "55") or null for non-intervals
      * @return -1 for insufficient digits, 0 for no, 1 for yes.
      */
     private static boolean isNumberInInterval(String number, String intervalStart,
@@ -332,7 +350,15 @@ public enum CardType {
         if (possibleCardTypes.size() > 1) {
             return CardType.INSUFFICIENT_DIGITS;
         } else if (possibleCardTypes.size() == 1) {
-            return possibleCardTypes.iterator().next();
+            CardType currentType = possibleCardTypes.iterator().next();
+            if (currentType == MAESTRO || currentType == DINERSCLUB) {
+                if (CreditCardNumber.isValidEloCard(numStr)) {
+                    currentType = ELO;
+                } else if (CreditCardNumber.isValidHiperCard(numStr)) {
+                    currentType = HIPERCARD;
+                }
+            }
+            return currentType;
         } else {
             return CardType.UNKNOWN;
         }
