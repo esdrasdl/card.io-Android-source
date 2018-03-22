@@ -120,6 +120,8 @@ public final class CardIOActivity extends Activity {
      */
     public static final String EXTRA_SCAN_RESULT = "io.card.payment.scanResult";
 
+    public static final String EXTRA_USE_CUSTOM_THEME = "io.card.payment.useCustomTheme";
+
     /**
      * Boolean extra indicating card was not scanned.
      */
@@ -275,7 +277,7 @@ public final class CardIOActivity extends Activity {
 
     private static final float UIBAR_VERTICAL_MARGIN_DP = 15.0f;
 
-    private static final long[] VIBRATE_PATTERN = { 0, 70, 10, 40 };
+    private static final long[] VIBRATE_PATTERN = {0, 70, 10, 40};
 
     private static final int TOAST_OFFSET_Y = -75;
 
@@ -300,6 +302,7 @@ public final class CardIOActivity extends Activity {
     private RelativeLayout mUIBar;
     private FrameLayout mMainLayout;
     private boolean useApplicationTheme;
+    private boolean useCustomTheme;
 
     private CardScanner mCardScanner;
 
@@ -326,8 +329,19 @@ public final class CardIOActivity extends Activity {
 
         final Intent clientData = this.getIntent();
 
-        useApplicationTheme = getIntent().getBooleanExtra(CardIOActivity.EXTRA_KEEP_APPLICATION_THEME, false);
-        ActivityHelper.setActivityTheme(this, useApplicationTheme);
+        int customThemeId = getIntent().getIntExtra(CardIOActivity.EXTRA_USE_CUSTOM_THEME, 0);
+        if (customThemeId != 0) {
+            try {
+                setTheme(customThemeId);
+                useApplicationTheme = true;
+                useCustomTheme = true;
+            } catch (Exception ioe) {
+                ActivityHelper.setActivityTheme(this, false);
+            }
+        } else {
+            useApplicationTheme = getIntent().getBooleanExtra(CardIOActivity.EXTRA_KEEP_APPLICATION_THEME, false);
+            ActivityHelper.setActivityTheme(this, useApplicationTheme);
+        }
 
         LocalizedStrings.setLanguage(clientData);
 
@@ -357,7 +371,7 @@ public final class CardIOActivity extends Activity {
 
         if (clientData.getBooleanExtra(EXTRA_NO_CAMERA, false)) {
             manualEntryFallbackOrForced = true;
-        } else if (!CardScanner.processorSupported()){
+        } else if (!CardScanner.processorSupported()) {
             manualEntryFallbackOrForced = true;
         } else {
             try {
@@ -459,8 +473,8 @@ public final class CardIOActivity extends Activity {
                 Class<?> testScannerClass = Class.forName("io.card.payment.CardScannerTester");
                 Constructor<?> cons = testScannerClass.getConstructor(this.getClass(),
                         Integer.TYPE);
-                mCardScanner = (CardScanner) cons.newInstance(new Object[] { this,
-                        mFrameOrientation });
+                mCardScanner = (CardScanner) cons.newInstance(new Object[]{this,
+                        mFrameOrientation});
             } else {
                 mCardScanner = new CardScanner(this, mFrameOrientation);
             }
@@ -759,9 +773,9 @@ public final class CardIOActivity extends Activity {
         float sf;
         if (mFrameOrientation == ORIENTATION_PORTRAIT
                 || mFrameOrientation == ORIENTATION_PORTRAIT_UPSIDE_DOWN) {
-            sf = mGuideFrame.right / (float)CardScanner.CREDIT_CARD_TARGET_WIDTH * .95f;
+            sf = mGuideFrame.right / (float) CardScanner.CREDIT_CARD_TARGET_WIDTH * .95f;
         } else {
-            sf = mGuideFrame.right / (float)CardScanner.CREDIT_CARD_TARGET_WIDTH * 1.15f;
+            sf = mGuideFrame.right / (float) CardScanner.CREDIT_CARD_TARGET_WIDTH * 1.15f;
         }
 
         Matrix m = new Matrix();
@@ -968,7 +982,7 @@ public final class CardIOActivity extends Activity {
             });
             mUIBar.addView(keyboardBtn);
             ViewUtil.styleAsButton(keyboardBtn, false, this, useApplicationTheme);
-            if(!useApplicationTheme){
+            if (!useApplicationTheme) {
                 keyboardBtn.setTextSize(Appearance.TEXT_SIZE_SMALL_BUTTON);
             }
             keyboardBtn.setMinimumHeight(ViewUtil.typedDimensionValueToPixelsInt(

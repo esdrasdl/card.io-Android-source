@@ -80,6 +80,7 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
     private boolean autoAcceptDone;
     private String labelLeftPadding;
     private boolean useApplicationTheme;
+    private boolean useCustomTheme;
     private int defaultTextColor;
 
     private static final String TAG = DataEntryActivity.class.getSimpleName();
@@ -95,8 +96,19 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
             return;
         }
 
-        useApplicationTheme = getIntent().getBooleanExtra(CardIOActivity.EXTRA_KEEP_APPLICATION_THEME, false);
-        ActivityHelper.setActivityTheme(this, useApplicationTheme);
+        int customThemeId = getIntent().getIntExtra(CardIOActivity.EXTRA_USE_CUSTOM_THEME, 0);
+        if (customThemeId != 0) {
+            try {
+                setTheme(customThemeId);
+                useApplicationTheme = true;
+                useCustomTheme = true;
+            } catch (Exception ioe) {
+                ActivityHelper.setActivityTheme(this, false);
+            }
+        } else {
+            useApplicationTheme = getIntent().getBooleanExtra(CardIOActivity.EXTRA_KEEP_APPLICATION_THEME, false);
+            ActivityHelper.setActivityTheme(this, useApplicationTheme);
+        }
 
         defaultTextColor = new TextView(this).getTextColors().getDefaultColor();
 
@@ -108,7 +120,7 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
         int paddingPx = ViewUtil.typedDimensionValueToPixelsInt(PADDING_DIP, this);
 
         RelativeLayout container = new RelativeLayout(this);
-        if( !useApplicationTheme ) {
+        if (!useApplicationTheme) {
             container.setBackgroundColor(Appearance.DEFAULT_BACKGROUND_COLOR);
         }
         ScrollView scrollView = new ScrollView(this);
@@ -151,14 +163,12 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
 
             activityTitleTextView = new TextView(this);
             activityTitleTextView.setTextSize(24);
-            if(! useApplicationTheme ) {
+            if (!useApplicationTheme) {
                 activityTitleTextView.setTextColor(Appearance.PAY_BLUE_COLOR);
             }
             mainLayout.addView(activityTitleTextView);
-            ViewUtil.setPadding(activityTitleTextView, null, null, null,
-                    Appearance.VERTICAL_SPACING);
-            ViewUtil.setDimensions(activityTitleTextView, LayoutParams.WRAP_CONTENT,
-                    LayoutParams.WRAP_CONTENT);
+            ViewUtil.setPadding(activityTitleTextView, null, null, null, Appearance.VERTICAL_SPACING);
+            ViewUtil.setDimensions(activityTitleTextView, LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
             LinearLayout numberLayout = new LinearLayout(this);
             numberLayout.setOrientation(LinearLayout.VERTICAL);
@@ -167,7 +177,7 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
             TextView numberLabel = new TextView(this);
             ViewUtil.setPadding(numberLabel, labelLeftPadding, null, null, null);
             numberLabel.setText(LocalizedStrings.getString(StringKey.ENTRY_CARD_NUMBER));
-            if(! useApplicationTheme ) {
+            if (!useApplicationTheme) {
                 numberLabel.setTextColor(Appearance.TEXT_COLOR_LABEL);
             }
             numberLayout.addView(numberLabel, LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
@@ -180,14 +190,14 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
                     android.R.attr.textAppearanceLarge);
             numberEdit.setInputType(InputType.TYPE_CLASS_PHONE);
             numberEdit.setHint("1234 5678 1234 5678");
-            if(! useApplicationTheme ) {
+            if (useCustomTheme || !useApplicationTheme) {
                 numberEdit.setHintTextColor(Appearance.TEXT_COLOR_EDIT_TEXT_HINT);
             }
 
             numberValidator = new CardNumberValidator();
             numberEdit.addTextChangedListener(numberValidator);
             numberEdit.addTextChangedListener(this);
-            numberEdit.setFilters(new InputFilter[] { new DigitsKeyListener(), numberValidator });
+            numberEdit.setFilters(new InputFilter[]{new DigitsKeyListener(), numberValidator});
 
             numberLayout.addView(numberEdit, LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
             mainLayout.addView(numberLayout, LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
@@ -210,7 +220,7 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
             expiryLayout.setOrientation(LinearLayout.VERTICAL);
 
             TextView expiryLabel = new TextView(this);
-            if(! useApplicationTheme ) {
+            if (!useApplicationTheme) {
                 expiryLabel.setTextColor(Appearance.TEXT_COLOR_LABEL);
             }
             expiryLabel.setText(LocalizedStrings.getString(StringKey.ENTRY_EXPIRES));
@@ -226,7 +236,7 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
                     android.R.attr.textAppearanceLarge);
             expiryEdit.setInputType(InputType.TYPE_CLASS_PHONE);
             expiryEdit.setHint(LocalizedStrings.getString(StringKey.EXPIRES_PLACEHOLDER));
-            if(! useApplicationTheme ) {
+            if (useCustomTheme || !useApplicationTheme) {
                 expiryEdit.setHintTextColor(Appearance.TEXT_COLOR_EDIT_TEXT_HINT);
             }
 
@@ -240,7 +250,7 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
             }
             expiryEdit.addTextChangedListener(expiryValidator);
             expiryEdit.addTextChangedListener(this);
-            expiryEdit.setFilters(new InputFilter[] { new DateKeyListener(), expiryValidator });
+            expiryEdit.setFilters(new InputFilter[]{new DateKeyListener(), expiryValidator});
 
             expiryLayout.addView(expiryEdit, LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
             optionLayout.addView(expiryLayout, expiryLayoutParam);
@@ -257,7 +267,7 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
             cvvLayout.setOrientation(LinearLayout.VERTICAL);
 
             TextView cvvLabel = new TextView(this);
-            if(! useApplicationTheme ) {
+            if (!useApplicationTheme) {
                 cvvLabel.setTextColor(Appearance.TEXT_COLOR_LABEL);
             }
             ViewUtil.setPadding(cvvLabel, labelLeftPadding, null, null, null);
@@ -271,8 +281,12 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
             cvvEdit.setImeOptions(EditorInfo.IME_ACTION_DONE);
             cvvEdit.setTextAppearance(getApplicationContext(), android.R.attr.textAppearanceLarge);
             cvvEdit.setInputType(InputType.TYPE_CLASS_PHONE);
-            cvvEdit.setHint("123");
-            if(! useApplicationTheme ) {
+            if (useCustomTheme) {
+                cvvEdit.setHint("###");
+            } else {
+                cvvEdit.setHint("123");
+            }
+            if (useCustomTheme || !useApplicationTheme) {
                 cvvEdit.setHintTextColor(Appearance.TEXT_COLOR_EDIT_TEXT_HINT);
             }
 
@@ -282,7 +296,7 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
                 length = type.cvvLength();
             }
             cvvValidator = new FixedLengthValidator(length);
-            cvvEdit.setFilters(new InputFilter[] { new DigitsKeyListener(), cvvValidator });
+            cvvEdit.setFilters(new InputFilter[]{new DigitsKeyListener(), cvvValidator});
             cvvEdit.addTextChangedListener(cvvValidator);
             cvvEdit.addTextChangedListener(this);
 
@@ -301,7 +315,7 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
             postalCodeLayout.setOrientation(LinearLayout.VERTICAL);
 
             TextView zipLabel = new TextView(this);
-            if(! useApplicationTheme ) {
+            if (!useApplicationTheme) {
                 zipLabel.setTextColor(Appearance.TEXT_COLOR_LABEL);
             }
             ViewUtil.setPadding(zipLabel, labelLeftPadding, null, null, null);
@@ -325,7 +339,7 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
             } else {
                 postalCodeEdit.setInputType(InputType.TYPE_CLASS_TEXT);
             }
-            if(! useApplicationTheme ) {
+            if (useCustomTheme || !useApplicationTheme) {
                 postalCodeEdit.setHintTextColor(Appearance.TEXT_COLOR_EDIT_TEXT_HINT);
             }
 
@@ -379,7 +393,7 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
         ViewUtil.styleAsButton(doneBtn, true, this, useApplicationTheme);
         ViewUtil.setPadding(doneBtn, "5dip", null, "5dip", null);
         ViewUtil.setMargins(doneBtn, "8dip", "8dip", "8dip", "8dip");
-        if(!useApplicationTheme) {
+        if (!useApplicationTheme) {
             doneBtn.setTextSize(Appearance.TEXT_SIZE_MEDIUM_BUTTON);
         }
 
@@ -400,7 +414,7 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
         ViewUtil.styleAsButton(cancelBtn, false, this, useApplicationTheme);
         ViewUtil.setPadding(cancelBtn, "5dip", null, "5dip", null);
         ViewUtil.setMargins(cancelBtn, "4dip", "8dip", "8dip", "8dip");
-        if(!useApplicationTheme) {
+        if (!useApplicationTheme) {
             cancelBtn.setTextSize(Appearance.TEXT_SIZE_MEDIUM_BUTTON);
         }
         container.addView(buttonLayout, buttonLayoutParam);
@@ -417,7 +431,7 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
         }
 
         // update UI to reflect expiry validness
-        if(requireExpiry && expiryValidator.isValid()){
+        if (requireExpiry && expiryValidator.isValid()) {
             afterTextChanged(expiryEdit.getEditableText());
         }
 
@@ -439,7 +453,7 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
                 cardholderNameValidator.getValue());
         Intent dataIntent = new Intent();
         dataIntent.putExtra(CardIOActivity.EXTRA_SCAN_RESULT, result);
-        if(getIntent().hasExtra(CardIOActivity.EXTRA_CAPTURED_CARD_IMAGE)){
+        if (getIntent().hasExtra(CardIOActivity.EXTRA_CAPTURED_CARD_IMAGE)) {
             dataIntent.putExtra(CardIOActivity.EXTRA_CAPTURED_CARD_IMAGE,
                     getIntent().getByteArrayExtra(CardIOActivity.EXTRA_CAPTURED_CARD_IMAGE));
         }
@@ -520,7 +534,11 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
                 FixedLengthValidator v = (FixedLengthValidator) cvvValidator;
                 int length = type.cvvLength();
                 v.requiredLength = length;
-                cvvEdit.setHint(length == 4 ? "1234" : "123");
+                if (useCustomTheme) {
+                    cvvEdit.setHint(length == 4 ? "####" : "###");
+                } else {
+                    cvvEdit.setHint(length == 4 ? "1234" : "123");
+                }
             }
         } else if (expiryEdit != null && et == expiryEdit.getText()) {
             if (expiryValidator.hasFullLength()) {
@@ -597,7 +615,7 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
             cardholderNameLayout.setOrientation(LinearLayout.VERTICAL);
 
             TextView cardholderNameLabel = new TextView(this);
-            if(! useApplicationTheme ) {
+            if (!useApplicationTheme) {
                 cardholderNameLabel.setTextColor(Appearance.TEXT_COLOR_LABEL);
             }
             ViewUtil.setPadding(cardholderNameLabel, labelLeftPadding, null, null, null);
@@ -613,7 +631,7 @@ public final class DataEntryActivity extends Activity implements TextWatcher {
             cardholderNameEdit.setTextAppearance(getApplicationContext(),
                     android.R.attr.textAppearanceLarge);
             cardholderNameEdit.setInputType(InputType.TYPE_CLASS_TEXT);
-            if(! useApplicationTheme ) {
+            if (useCustomTheme || !useApplicationTheme) {
                 cardholderNameEdit.setHintTextColor(Appearance.TEXT_COLOR_EDIT_TEXT_HINT);
             }
 
