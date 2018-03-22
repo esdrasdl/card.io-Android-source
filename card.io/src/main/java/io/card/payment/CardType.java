@@ -281,6 +281,8 @@ public enum CardType {
         intervalLookup.put(getNewPair("65", null), CardType.DISCOVER);          // Discover
         intervalLookup.put(getNewPair("66", "69"), CardType.MAESTRO);           // Maestro
         intervalLookup.put(getNewPair("88", null), CardType.DISCOVER);          // China UnionPay (Discover)
+        intervalLookup.put(getNewPair("6062820", "6062829"), CardType.HIPERCARD); // Brazil Hipercard
+        intervalLookup.put(getNewPair("636297", null), CardType.ELO);          // Brazil ELO
 
         for (Entry<Pair<String, String>, CardType> entry : getIntervalLookup().entrySet()) {
             minDigits = Math.max(minDigits, entry.getKey().first.length());
