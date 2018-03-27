@@ -71,9 +71,12 @@ class Util {
         return sHardwareSupported;
     }
 
+    public static boolean hardwareSupportedMHigher() {
+        return isProcessorSupported();
+    }
+
     private static boolean hardwareSupportCheck() {
-        if (!CardScanner.processorSupported()) {
-            Log.w(PUBLIC_LOG_TAG, "- Processor type is not supported");
+        if (!isProcessorSupported()) {
             return false;
         }
 
@@ -82,12 +85,8 @@ class Util {
         try {
             c = Camera.open();
         } catch (RuntimeException e) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                return true;
-            } else {
-                Log.w(PUBLIC_LOG_TAG, "- Error opening camera: " + e);
-                throw new CameraUnavailableException();
-            }
+            Log.w(PUBLIC_LOG_TAG, "- Error opening camera: " + e);
+            throw new CameraUnavailableException();
         }
         if (c == null) {
             Log.w(PUBLIC_LOG_TAG, "- No camera found");
@@ -113,6 +112,16 @@ class Util {
         return true;
     }
 
+    private static boolean isProcessorSupported() {
+        Log.i(PUBLIC_LOG_TAG, "Checking hardware support...");
+
+        if (!CardScanner.processorSupported()) {
+            Log.w(PUBLIC_LOG_TAG, "- Processor type is not supported");
+            return false;
+        }
+        return true;
+    }
+
     public static String getNativeMemoryStats() {
         return "(free/alloc'd/total)" + Debug.getNativeHeapFreeSize() + "/"
                 + Debug.getNativeHeapAllocatedSize() + "/" + Debug.getNativeHeapSize();
@@ -132,7 +141,7 @@ class Util {
         paint.setStyle(Paint.Style.FILL);
         paint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
         paint.setAntiAlias(true);
-        float[] black = { 0f, 0f, 0f };
+        float[] black = {0f, 0f, 0f};
         paint.setShadowLayer(1.5f, 0.5f, 0f, Color.HSVToColor(200, black));
     }
 
@@ -145,9 +154,9 @@ class Util {
      * @param mOverlay
      */
     static void writeCapturedCardImageIfNecessary(
-            Intent origIntent, Intent dataIntent, OverlayView mOverlay){
+            Intent origIntent, Intent dataIntent, OverlayView mOverlay) {
         if (origIntent.getBooleanExtra(CardIOActivity.EXTRA_RETURN_CARD_IMAGE, false)
-            && mOverlay != null && mOverlay.getBitmap() != null) {
+                && mOverlay != null && mOverlay.getBitmap() != null) {
             ByteArrayOutputStream scaledCardBytes = new ByteArrayOutputStream();
             mOverlay.getBitmap().compress(Bitmap.CompressFormat.JPEG, 80, scaledCardBytes);
             dataIntent.putExtra(CardIOActivity.EXTRA_CAPTURED_CARD_IMAGE, scaledCardBytes.toByteArray());
